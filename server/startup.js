@@ -1,3 +1,21 @@
+var getUserNameFromId = function(id) {
+    var user = Meteor.users.findOne({
+        _id: id
+    });
+
+    if (user) {
+        if (user.username) {
+            return user.username;
+        } else if (user.profile && user.profile.name) {
+            return user.profile.name;
+        } else if (user.emails && user.emails[0]) {
+            return user.emails[0].address;
+        } else {
+            return "Signed In";
+        }
+    }
+};
+
 if (Meteor.isServer) {
     Meteor.startup(function() {
         //Clear games on server start
@@ -40,20 +58,7 @@ if (Meteor.isServer) {
         //Server "helper" methods to call asynchronously from the client
         return Meteor.methods({
             getUserName: function(id) {
-                var user = Meteor.users.findOne({
-                    _id: id
-                });
-                if (user) {
-                    if (user.username) {
-                        return user.username;
-                    } else if (user.profile && user.profile.name) {
-                        return user.profile.name;
-                    } else if (user.emails && user.emails[0]) {
-                        return user.emails[0].address;
-                    } else {
-                        return "Signed In";
-                    }
-                }
+                return getUserNameFromId(id);
             },
             clearImages: function() {
                 return Images.remove({});
@@ -126,7 +131,8 @@ if (Meteor.isServer) {
                 var imageId = Images.insert({
                     imageSource: imageUrl,
                     createdAt: new Date(),
-                    creatorId: this.userId
+                    creatorId: this.userId,
+                    creatorName: getUserNameFromId(this.userId)
                 });
                 currentRound.imageToVotesMap[imageId] = 0;
                 Rounds.update({
