@@ -1,3 +1,23 @@
+//cwkTODO this helper method should live somewhere
+//instead of being copied from startup.js
+var getUserNameFromId = function(id) {
+    var user = Meteor.users.findOne({
+        _id: id
+    });
+
+    if (user) {
+        if (user.username) {
+            return user.username;
+        } else if (user.profile && user.profile.name) {
+            return user.profile.name;
+        } else if (user.emails && user.emails[0]) {
+            return user.emails[0].address;
+        } else {
+            return "Signed In";
+        }
+    }
+};
+
 Template.upload.helpers({
     storedImages: function() {
         var currentGame = Games.findOne();
@@ -26,7 +46,11 @@ Template.upload.helpers({
     },
     users: function() {
         var currentGame = Games.findOne();
-        return currentGame.userIds
+        var userNames = [];
+        for (var i=0; i<currentGame.userIds.length; i++) {
+            userNames.push( getUserNameFromId(currentGame.userIds[i]) );
+        }
+        return userNames;
     },
     roundNumber: function() {
         var currentGame = Games.findOne();
